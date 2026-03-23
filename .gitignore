@@ -6,6 +6,26 @@
 !01-大模型技術與發展/圖片/
 !**/圖片/
 !.gitignore
+!**/.gitignore
+
+# ===== 特別允許：微調專項 =====
+# 追踪微調專項下的關鍵檔案（.py、.csv、.md）
+!微調專項/
+!微調專項/*.py
+!微調專項/*.md
+!微調專項/*.csv
+!微調專項/experiments/
+!微調專項/experiments/results/
+!微調專項/experiments/results/*
+
+# 但忽略模型和快取
+微調專項/venv/
+微調專項/env/
+微調專項/final_model/
+微調專項/experiments/final_model/
+微調專項/experiments/checkpoint-*/
+微調專項/__pycache__/
+微調專項/.ipynb_checkpoints/
 
 # 只允許圖片資料夾下所有內容
 !圖片/**
@@ -26,10 +46,11 @@ __pycache__/
 *.bak
 *.swp
 
-# 忽略 Python、notebook、csv、json、sh、bat、ipynb
+# 全局忽略 Python、notebook、csv、json、sh、bat、ipynb（除了上面白名單）
 *.py
 *.ipynb
 *.csv
 *.json
 *.sh
 *.bat
+
