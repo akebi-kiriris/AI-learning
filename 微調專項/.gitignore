@@ -1,0 +1,33 @@
+# 忽略虛擬環境
+venv/
+env/
+ENV/
+
+# 忽略 Python 快取
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 忽略模型檔案（太大）
+final_model/
+checkpoint-*/
+
+# 忽略臨時檔案
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 忽略 notebook 檢查點
+.ipynb_checkpoints/
+
+# 追踪清單：如下所示
+# ✓ .py 訓練和評估腳本
+# ✓ .md 文檔
+# ✓ .csv 資料集
+# ✓ results/ 評估結果
