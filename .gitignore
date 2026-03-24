@@ -18,12 +18,21 @@
 !微調專項/experiments/results/
 !微調專項/experiments/results/*
 
+# 允許 maxlen 實驗結果（要上傳）
+!微調專項/results-maxlen-*/
+!微調專項/results-maxlen-*/results/
+!微調專項/results-maxlen-*/results/**
+!微調專項/results-maxlen-summary.json
+!微調專項/results-maxlen-analysis.txt
+
 # 但忽略模型和快取
 微調專項/venv/
 微調專項/env/
 微調專項/final_model/
 微調專項/experiments/final_model/
 微調專項/experiments/checkpoint-*/
+微調專項/results-maxlen-*/final_model/
+微調專項/results-maxlen-*/checkpoint-*/
 微調專項/__pycache__/
 微調專項/.ipynb_checkpoints/
 

@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-03-24T22:53:51.086037",
+  "model": "distilbert-base-uncased",
+  "max_seq_length": 128,
+  "batch_size": 8,
+  "learning_rate": 2e-05,
+  "num_epochs": 3,
+  "overall_metrics": {
+    "accuracy": 0.8736666666666667,
+    "f1_weighted": 0.8736329547471497
+  },
+  "per_class_metrics": {
+    "negative": {
+      "precision": 0.8618463524854745,
+      "recall": 0.89,
+      "f1-score": 0.875696949819613,
+      "support": 1500
+    },
+    "positive": {
+      "precision": 0.8862853204686423,
+      "recall": 0.8573333333333333,
+      "f1-score": 0.8715689596746865,
+      "support": 1500
+    }
+  },
+  "confusion_matrix": {
+    "TN": 1335,
+    "FP": 165,
+    "FN": 214,
+    "TP": 1286
+  }
+}

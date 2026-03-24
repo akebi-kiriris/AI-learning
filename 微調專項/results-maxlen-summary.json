@@ -1,0 +1,29 @@
+{
+  "maxlen_64": {
+    "max_seq_length": 64,
+    "training_time_seconds": 204.47848200798035,
+    "training_time_minutes": 3.41,
+    "test_accuracy": 0.8156666666666667,
+    "test_f1": 0.815662058218122,
+    "test_precision": 0.8188552188552188,
+    "test_recall": 0.8106666666666666
+  },
+  "maxlen_128": {
+    "max_seq_length": 128,
+    "training_time_seconds": 242.00854110717773,
+    "training_time_minutes": 4.03,
+    "test_accuracy": 0.8736666666666667,
+    "test_f1": 0.8736329547471497,
+    "test_precision": 0.8618463524854745,
+    "test_recall": 0.89
+  },
+  "maxlen_256": {
+    "max_seq_length": 256,
+    "training_time_seconds": 243.14953136444092,
+    "training_time_minutes": 4.05,
+    "test_accuracy": 0.903,
+    "test_f1": 0.9029256950125492,
+    "test_precision": 0.926605504587156,
+    "test_recall": 0.8753333333333333
+  }
+}

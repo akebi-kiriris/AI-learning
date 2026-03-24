@@ -13,6 +13,14 @@ __pycache__/
 final_model/
 checkpoint-*/
 
+# maxlen 實驗：保留結果、忽略模型
+results-maxlen-*/final_model/
+results-maxlen-*/checkpoint-*/
+!results-maxlen-*/results/
+!results-maxlen-*/results/**
+!results-maxlen-summary.json
+!results-maxlen-analysis.txt
+
 # 忽略臨時檔案
 *.log
 *.tmp
