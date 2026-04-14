@@ -204,8 +204,116 @@ output :
 ```
 
 
+## 實際應用場景
+
+以下是最常見且適合 LangGraph 的落地場景：
+
+1. 文件問答工作流
+   - 流程：問題分類 -> 檢索策略選擇 -> 產生答案 -> 可信度檢查。
+2. 工單處理流程
+   - 流程：解析需求 -> 查詢工單狀態 -> 需要時升級人工。
+3. 多工具 Agent
+   - 流程：規劃步驟 -> 呼叫工具 -> 整理結果 -> 決定是否繼續。
+4. 高風險操作流程
+   - 流程：先草擬動作 -> 人工確認 -> 真正執行。
+
+共通特徵是：
+- 不是單步就能完成。
+- 需要保存中間狀態。
+- 需要明確且可追蹤的分支邏輯。
 
 
+## 實現模式（從簡到難）
+
+### 模式 A：線性流程（Linear Flow）
+
+適合固定順序任務，例如 `預處理 -> 呼叫模型 -> 格式化輸出`。
+
+```python
+builder.add_edge(START, "preprocess")
+builder.add_edge("preprocess", "llm_call")
+builder.add_edge("llm_call", "postprocess")
+builder.add_edge("postprocess", END)
+```
 
 
+### 模式 B：路由流程（Router Flow）
 
+適合根據狀態選擇不同路徑，例如依問題類型走不同工具鏈。
+
+```python
+from typing import Literal
+
+def route(state) -> Literal["db_path", "web_path"]:
+    if state["question_type"] == "internal":
+        return "db_path"
+    return "web_path"
+
+builder.add_conditional_edges("classifier", route)
+```
+
+
+### 模式 C：帶保護的迴圈（Loop with Guard）
+
+適合需要反覆嘗試的任務，例如「檢索結果不夠好就再查一次」。
+
+```python
+def should_retry(state):
+    return state["retry_count"] < 2 and state["score"] < 0.7
+
+if should_retry(state):
+    state["retry_count"] += 1
+    # 回到 retriever 節點
+```
+
+關鍵是一定要有 guard：
+- 最大重試次數
+- 逾時條件
+- 失敗回退路徑
+
+
+## 狀態設計建議（State Schema）
+
+狀態欄位建議至少包含：
+
+1. `input`：原始使用者需求。
+2. `intermediate_results`：中間結果，方便追蹤。
+3. `decision`：當前路由決策。
+4. `retry_count`：重試次數，防止死循環。
+5. `errors`：錯誤訊息，用於診斷與 fallback。
+
+狀態設計原則：
+- 欄位名稱要業務語意化。
+- 只存下一步決策需要的資料。
+- 避免把大量原始資料直接塞進 state。
+
+
+## 常見錯誤與排查
+
+| 問題 | 常見原因 | 修正方式 |
+|---|---|---|
+| 圖無法收斂 | 缺少終止條件 | 每個迴圈加 `max_steps` 或 `retry_count` |
+| 路由錯誤 | state 欄位命名不一致 | 固定 schema，並在節點入口先校驗 |
+| 中間結果遺失 | 節點回傳覆蓋舊 state | 採用 merge 更新策略，保留必要欄位 |
+| 難以除錯 | 無執行追蹤 | 打開 trace/log，記錄節點進出與耗時 |
+| 成本過高 | 不必要節點重跑 | 拆快取層，對穩定步驟做結果緩存 |
+
+
+## 與 LangChain 的搭配方式
+
+最實用的分工如下：
+
+1. LangChain：提供模型、Retriever、Tools 的標準介面。
+2. LangGraph：提供流程控制、狀態管理、分支與迴圈。
+
+實作上常見做法：
+- 節點內部使用 LangChain 元件執行單一步驟。
+- 圖層由 LangGraph 管理整體控制流。
+
+
+## 本章小結
+
+1. LangGraph 的核心價值是可控流程，不是取代模型。
+2. 當任務出現分支、迴圈、人工介入時，LangGraph 優勢會很明顯。
+3. 設計好 state 與終止條件，是避免工作流失控的關鍵。
+4. 與 LangChain 搭配時，通常是 LangChain 管能力，LangGraph 管流程。

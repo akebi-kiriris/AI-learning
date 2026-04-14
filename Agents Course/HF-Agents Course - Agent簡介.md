@@ -977,17 +977,88 @@ Agent隨後利用這些資訊決定是否需要額外數據，或是否準備好
 
 
 ### 結果如何被附加？
-執行操作后，框架按以下步驟處理：
+執行操作後，框架通常按以下步驟處理：
 
-  1. 解析操作 以識別要調用的函數和使用的參數
-  2. 執行操作
-  3. 將結果附加 作為 Observation
-
-
-## 
-
+1. 解析操作，識別要調用的函數與參數。
+2. 執行操作，取得工具輸出或錯誤資訊。
+3. 將結果附加為 Observation 訊息。
+4. 把 Observation 追加到對話歷史，回灌到下一輪推理。
+5. 由 Agent 判斷是否達成目標；若未達成，繼續 Thought -> Action -> Observation。
 
 
+### 最小 Agent 迴圈（可實作版本）
+
+```python
+def run_agent(messages, llm, tool_registry, max_steps=6):
+    for _ in range(max_steps):
+        llm_resp = llm(messages)
+
+        # 若模型已給最終答案，就結束
+        if llm_resp.get("final_answer"):
+            return llm_resp["final_answer"]
+
+        action = llm_resp.get("action")
+        action_input = llm_resp.get("action_input", {})
+
+        if action not in tool_registry:
+            messages.append({
+                "role": "observation",
+                "content": f"Unknown tool: {action}",
+            })
+            continue
+
+        try:
+            result = tool_registry[action](**action_input)
+            messages.append({"role": "observation", "content": str(result)})
+        except Exception as exc:
+            messages.append({"role": "observation", "content": f"Tool error: {exc}"})
+
+    return "超過最大步數，任務未完成。"
+```
+
+這段程式凸顯三個最重要控制點：
+- `max_steps`：避免無限迴圈。
+- `tool_registry`：限制可用工具邊界。
+- `observation` 回灌：讓模型根據真實結果調整下一步。
 
 
+## Agent 設計最小清單（上線前一定要有）
 
+1. 明確目標：這個 Agent 要完成什麼任務、輸出格式是什麼。
+2. 工具邊界：可用工具、禁用工具、需要人工確認的工具。
+3. 失敗策略：重試條件、回退策略、超時策略。
+4. 停止條件：達成目標、超過步數、遇到不可恢復錯誤。
+5. 觀測能力：至少記錄 `tool_name`、`latency`、`error_rate`。
+
+
+## 常見失敗模式與修正
+
+| 失敗模式 | 現象 | 修正方式 |
+|---|---|---|
+| 工具選擇錯誤 | 明明要查資料卻去呼叫寫入工具 | 改善工具描述，並在 system prompt 增加「何時使用」條件 |
+| 參數不足 | API 常回 400 或 validation error | 在 schema 設 `required`，缺參數時先追問使用者 |
+| 無限迴圈 | 一直重複呼叫同一工具 | 設 `max_steps` + 檢查連續重複 action |
+| 偽造觀察結果 | 沒調工具卻聲稱已取得結果 | 在規則中明確禁止，且以程式層檢查 tool log |
+| 高風險誤操作 | 誤發通知、誤刪資料 | 對高風險工具加人工確認與權限隔離 |
+
+
+## 與下一單元銜接：為什麼要學 LangGraph
+
+當 Agent 任務從單步變多步，你會遇到：
+1. 分支流程愈來愈多，if-else 難維護。
+2. 需要在多步之間保存狀態。
+3. 需要更清楚的可視化與追蹤。
+
+LangGraph 正是把這些需求「圖結構化」的工具：
+- 用節點表示步驟。
+- 用邊表示轉移。
+- 用狀態表示上下文。
+
+
+## 本章小結
+
+1. Agent 的核心不是一次回答，而是循環式決策與執行。
+2. Tool Calling 讓 Agent 從純文字推理升級成可行動系統。
+3. Thought -> Action -> Observation 是最關鍵的操作閉環。
+4. 真正可用的 Agent 一定要有邊界、停止條件與錯誤恢復機制。
+5. 進入複雜工作流時，應使用 LangGraph 管理狀態與流程控制。
